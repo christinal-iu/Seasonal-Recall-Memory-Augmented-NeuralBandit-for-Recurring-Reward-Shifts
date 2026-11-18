@@ -83,4 +83,56 @@ class NeuralBandit2:
         num_bandits = len(self.bandits)
         estimated_reward = reward / self.chosen_prob
         self.log_weights[self.chosen_index] += (self.gamma_model * estimated_reward / num_bandits)
-        
+
+class NeuralBandit3:
+    def __init__(self, rng):
+        self.rng = rng
+        self.gamma = 0.005
+        self.gamma_model = 0.1
+        self.bandits = []
+
+        for hidden_size in [1, 5, 25, 50, 100]:
+            for lr in [0.01, 0.1, 1.0]:
+                self.bandits.append(NeuralBandit1(hidden_size, lr, rng))
+
+        self.log_weights = np.zeros((7, len(self.bandits)))
+
+    def choose_action(self, context):
+        scores = []
+        model_indices = []
+        model_probs = []
+        num_bandits = len(self.bandits)
+
+        for action_index in range(7):
+            # pick configuration for action
+            log_weights = self.log_weights[action_index]
+            weights = np.exp(log_weights - log_weights.max())
+            probs = (1 - self.gamma_model) * weights / weights.sum()
+            probs += self.gamma_model / num_bandits
+
+            model_index = self.rng.choice(num_bandits, p=probs)
+            model_indices.append(model_index)
+            model_probs.append(probs[model_index])
+
+            model = self.bandits[model_index].models[action_index]
+            with torch.no_grad():
+                scores.append(model(context).item())
+
+        # choose action from seven scores
+        best_index = int(np.argmax(scores))
+        action_probs = np.full(7, self.gamma / 7)
+        action_probs[best_index] += 1 - self.gamma
+        action_index = self.rng.choice(7, p=action_probs)
+
+        self.chosen_model = model_indices[action_index]
+        self.chosen_model_prob = model_probs[action_index]
+        return action_index + 1, action_probs[action_index]
+
+    def update(self, context, action, reward, prob):
+        # train played action's network in every config
+        for bandit in self.bandits:
+            bandit.update(context, action, reward, prob)
+
+        # update exp3 selector for played action
+        estimated_reward = reward / self.chosen_model_prob
+        self.log_weights[action - 1][self.chosen_model] += (self.gamma_model * estimated_reward / len(self.bandits))

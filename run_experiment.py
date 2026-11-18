@@ -2,7 +2,7 @@ import numpy as np
 import torch
 
 from load_dataset import encode_features, load_dataset
-from neural_bandit import NeuralBandit2
+from neural_bandit import NeuralBandit3
 
 def main():
     rng = np.random.default_rng(67)
@@ -16,7 +16,7 @@ def main():
     row_order = rng.permutation(len(labels))[:rounds]
     rewards = np.zeros(rounds)
 
-    bandit = NeuralBandit2(rng=rng)
+    bandit = NeuralBandit3(rng=rng)
 
     for x, row in enumerate(row_order):
         context = features[row]
