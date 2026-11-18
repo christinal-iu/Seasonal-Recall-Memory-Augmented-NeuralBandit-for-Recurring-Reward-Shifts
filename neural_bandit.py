@@ -47,3 +47,40 @@ class NeuralBandit1:
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+
+class NeuralBandit2:
+    def __init__(self, rng):
+        self.rng = rng
+        self.gamma_model = 0.1
+        self.bandits = []
+
+        # make one bandit for each combo of settings
+        for hidden_size in [1, 5, 25, 50, 100]:
+            for lr in [0.01, 0.1, 1.0]:
+                self.bandits.append(NeuralBandit1(hidden_size, lr, rng))
+
+        self.log_weights = np.zeros(len(self.bandits))
+
+    def choose_action(self, context):
+        # get exp3 prob of choosing each bandit
+        weights = np.exp(self.log_weights - self.log_weights.max())
+        num_bandits = len(self.bandits)
+        probs = (1 - self.gamma_model) * weights / weights.sum()
+        probs += self.gamma_model / num_bandits
+
+        self.chosen_index = self.rng.choice(num_bandits, p=probs)
+        self.chosen_prob = probs[self.chosen_index]
+
+        # let chosen bandit choose action
+        return self.bandits[self.chosen_index].choose_action(context)
+
+    def update(self, context, action, reward, prob):
+        # train every bandit on action that was played
+        for bandit in self.bandits:
+            bandit.update(context, action, reward, prob)
+
+        # update exp3 weights of chosen bandit
+        num_bandits = len(self.bandits)
+        estimated_reward = reward / self.chosen_prob
+        self.log_weights[self.chosen_index] += (self.gamma_model * estimated_reward / num_bandits)
+        
