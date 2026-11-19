@@ -124,15 +124,21 @@ class NeuralBandit3:
         action_probs[best_index] += 1 - self.gamma
         action_index = self.rng.choice(7, p=action_probs)
 
-        self.chosen_model = model_indices[action_index]
-        self.chosen_model_prob = model_probs[action_index]
+        self.chosen_models = model_indices
+        self.chosen_model_probs = model_probs
         return action_index + 1, action_probs[action_index]
 
     def update(self, context, action, reward, prob):
-        # train played action's network in every config
+        # train played action's network in every configuration
         for bandit in self.bandits:
             bandit.update(context, action, reward, prob)
 
-        # update exp3 selector for played action
-        estimated_reward = reward / self.chosen_model_prob
-        self.log_weights[action - 1][self.chosen_model] += (self.gamma_model * estimated_reward / len(self.bandits))
+        # update each exp3 selector using the observed reward
+        num_bandits = len(self.bandits)
+
+        for action_index in range(7):
+            model_index = self.chosen_models[action_index]
+            model_prob = self.chosen_model_probs[action_index]
+            estimated_reward = reward / model_prob
+
+            self.log_weights[action_index, model_index] += (self.gamma_model * estimated_reward / num_bandits)

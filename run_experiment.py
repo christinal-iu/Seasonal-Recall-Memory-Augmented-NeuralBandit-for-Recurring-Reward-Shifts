@@ -35,10 +35,10 @@ def run_experiment(features, labels, row_order, model, rounds, seed, drift):
     return rewards
 
 def main():
-    model = NeuralBandit3
-    rounds = 500
+    model = NeuralBandit2
+    rounds = 1400000
     runs = 1
-    drift = 0
+    drift = 500000
 
     features, labels = load_dataset()
     features = torch.from_numpy(encode_features(features))
@@ -51,7 +51,7 @@ def main():
         print(f"{model.__name__}, seed {seed}", flush=True)
 
         rewards = run_experiment(features, labels, row_order, model, rounds, seed, drift)
-        print(f"avg reward: {rewards.mean():.4f}")
+        print(f"last 100,000 avg reward: {rewards[-100_000:].mean():.4f}")
 
         filename = (
             f"{model.__name__}_rounds{rounds}"
