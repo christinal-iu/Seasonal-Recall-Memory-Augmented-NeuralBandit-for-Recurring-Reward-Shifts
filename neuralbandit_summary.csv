@@ -1,0 +1,5 @@
+model,setting,runs,last_100000_accuracy_mean,last_100000_accuracy_std
+NeuralBandit2,stationary,10,0.6405580000000001,0.014060954448400718
+NeuralBandit3,stationary,10,0.635985,0.011748670137509167
+NeuralBandit2,label shifts,10,0.555591,0.01758259521357539
+NeuralBandit3,label shifts,10,0.537414,0.030808290803324707

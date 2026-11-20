@@ -1,8 +1,8 @@
 import numpy as np
 import torch
-
 from load_dataset import encode_features, load_dataset
 from neural_bandit import NeuralBandit2, NeuralBandit3
+import os
 
 def run_experiment(features, labels, row_order, model, rounds, seed, drift):
     rng = np.random.default_rng(seed)
@@ -35,28 +35,44 @@ def run_experiment(features, labels, row_order, model, rounds, seed, drift):
     return rewards
 
 def main():
-    model = NeuralBandit2
-    rounds = 1400000
-    runs = 1
-    drift = 500000
-
     features, labels = load_dataset()
     features = torch.from_numpy(encode_features(features))
-
-    # use same shuffled row order for both models
     row_order = np.random.default_rng(67).permutation(len(labels))
 
-    for run in range(runs):
-        seed = 67 + run
-        print(f"{model.__name__}, seed {seed}", flush=True)
+    experiments = [
+        (NeuralBandit2, 1_400_000, 500_000),
+        (NeuralBandit3, 1_400_000, 500_000),
+        (NeuralBandit2, 6_000_000, 0),
+        (NeuralBandit3, 6_000_000, 0),
+    ]
 
-        rewards = run_experiment(features, labels, row_order, model, rounds, seed, drift)
-        print(f"last 100,000 avg reward: {rewards[-100_000:].mean():.4f}")
+    for model, rounds, drift in experiments:
+        for seed in range(67, 77):
+            filename = (
+                f"{model.__name__}_rounds{rounds}"
+                f"_drift{drift}_seed{seed}.npz"
+            )
 
-        filename = (
-            f"{model.__name__}_rounds{rounds}"
-            f"_drift{drift}_seed{seed}.npz")
-        np.savez_compressed(filename, rewards=rewards)
+            # skip runs that already have saved results
+            if os.path.exists(filename):
+                print(f"skipping {filename}", flush=True)
+                continue
+
+            print(
+                f"starting {model.__name__}, drift {drift}, seed {seed}",
+                flush=True,
+            )
+
+            rewards = run_experiment(
+                features, labels, row_order, model, rounds, seed, drift
+            )
+
+            np.savez_compressed(filename, rewards=rewards)
+            print(
+                f"last 100,000 avg reward: {rewards[-100_000:].mean():.4f}",
+                flush=True,
+            )
+            print(f"saved {filename}", flush=True)
 
 if __name__ == "__main__":
     main()
