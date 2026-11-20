@@ -1,0 +1,11 @@
+model,setting,runs,final_regret_mean,final_regret_std
+NeuralBandit2,stationary,10,1243465.0,73963.33222016915
+NeuralBandit3,stationary,10,1306460.2,71555.04329271433
+LinUCB,stationary,10,687533.7,2822.7202423666904
+CTS,stationary,10,703909.9,891.8926754068813
+Banditron,stationary,10,1467843.7,27324.535970645706
+NeuralBandit2,label shifts,10,426258.7,17005.143183101336
+NeuralBandit3,label shifts,10,455490.4,27723.561841068607
+LinUCB,label shifts,10,456579.4,21850.7798803104
+CTS,label shifts,10,504560.3,11008.174932496506
+Banditron,label shifts,10,431725.8,7916.33499375395
