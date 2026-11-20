@@ -55,7 +55,7 @@ def main():
     ]
 
     for ax, (setting, rounds, drift) in zip(axes, settings):
-        for model in ["NeuralBandit2", "NeuralBandit3"]:
+        for model in ["NeuralBandit2", "NeuralBandit3", "LinUCB", "CTS", "Banditron"]:
             mean_accuracy, std_accuracy = plot_rewards(
                 ax, model, rounds, drift
             )

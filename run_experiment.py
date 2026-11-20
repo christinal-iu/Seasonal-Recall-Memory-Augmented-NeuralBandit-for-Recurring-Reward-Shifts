@@ -1,14 +1,14 @@
+import os
 import numpy as np
 import torch
+from baselines import LinUCB, CTS, Banditron
 from load_dataset import encode_features, load_dataset
-from neural_bandit import NeuralBandit2, NeuralBandit3
-import os
 
 def run_experiment(features, labels, row_order, model, rounds, seed, drift):
     rng = np.random.default_rng(seed)
     torch.manual_seed(seed)
 
-    # start at random row in the shuffled dataset
+    # start at random row in shuffled data
     start = rng.integers(len(row_order))
     bandit = model(rng=rng)
     rewards = np.zeros(rounds, dtype=np.uint8)
@@ -19,7 +19,7 @@ def run_experiment(features, labels, row_order, model, rounds, seed, drift):
         context = features[row]
         label = int(labels[row])
 
-        # after every drift interval, rotate the correct class 
+        # rotate correct class after each drift interval
         if drift > 0:
             shift = x // drift
             label = (label - 1 + shift) % 7 + 1
@@ -29,23 +29,21 @@ def run_experiment(features, labels, row_order, model, rounds, seed, drift):
         rewards[x] = reward
         bandit.update(context, action, reward, prob)
 
-        if (x + 1) % 10000 == 0:
-            print(f"finished round: {x + 1:,} / {rounds:,}", flush=True)
+        if (x + 1) % 10_000 == 0:
+            print(f"finished round: {x + 1:,} / {rounds:,}", flush=True,)
 
     return rewards
+
 
 def main():
     features, labels = load_dataset()
     features = torch.from_numpy(encode_features(features))
+
+    # use same shuffled order as neural experiments
     row_order = np.random.default_rng(67).permutation(len(labels))
 
-    experiments = [
-        (NeuralBandit2, 1_400_000, 500_000),
-        (NeuralBandit3, 1_400_000, 500_000),
-        (NeuralBandit2, 6_000_000, 0),
-        (NeuralBandit3, 6_000_000, 0),
-    ]
-
+    experiments = [(Banditron, 1_400_000, 500_000), (Banditron, 6_000_000, 0),]
+    
     for model, rounds, drift in experiments:
         for seed in range(67, 77):
             filename = (
@@ -53,7 +51,6 @@ def main():
                 f"_drift{drift}_seed{seed}.npz"
             )
 
-            # skip runs that already have saved results
             if os.path.exists(filename):
                 print(f"skipping {filename}", flush=True)
                 continue
@@ -68,11 +65,15 @@ def main():
             )
 
             np.savez_compressed(filename, rewards=rewards)
+
+            window = min(100_000, len(rewards))
             print(
-                f"last 100,000 avg reward: {rewards[-100_000:].mean():.4f}",
+                f"last {window:,} avg reward: "
+                f"{rewards[-window:].mean():.4f}",
                 flush=True,
             )
             print(f"saved {filename}", flush=True)
+
 
 if __name__ == "__main__":
     main()
