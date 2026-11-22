@@ -11,10 +11,8 @@ def main():
         "Banditron",
     ]
 
-    settings = [
-        ("stationary", 6000000, 0),
-        ("label shifts", 1400000, 500000),
-    ]
+    settings = [("stationary", 2_500_000, 0),("label shifts", 2_500_000, 500_000),]
+
 
     with np.load("reference_predictions.npz") as data:
         predictions = data["predictions"]

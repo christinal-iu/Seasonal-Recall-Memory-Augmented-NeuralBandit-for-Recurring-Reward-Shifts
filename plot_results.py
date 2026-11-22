@@ -4,7 +4,7 @@ import numpy as np
 
 
 def plot_rewards(ax, model, rounds, drift):
-    block_size = 10_000
+    block_size = 10000
     curves = []
     final_accuracy = []
 
@@ -49,10 +49,7 @@ def main():
     fig, axes = plt.subplots(1, 2, figsize=(12, 4), sharey=True)
     summary = []
 
-    settings = [
-        ("stationary", 6_000_000, 0),
-        ("label shifts", 1_400_000, 500_000),
-    ]
+    settings = [("stationary", 2_500_000, 0),("label shifts", 2_500_000, 500_000),]
 
     for ax, (setting, rounds, drift) in zip(axes, settings):
         for model in ["NeuralBandit2", "NeuralBandit3", "LinUCB", "CTS", "Banditron"]:

@@ -1,8 +1,11 @@
 import os
 import numpy as np
 import torch
+
 from baselines import LinUCB, CTS, Banditron
+from neural_bandit import NeuralBandit2, NeuralBandit3
 from load_dataset import encode_features, load_dataset
+
 
 def run_experiment(features, labels, row_order, model, rounds, seed, drift):
     rng = np.random.default_rng(seed)
@@ -30,7 +33,10 @@ def run_experiment(features, labels, row_order, model, rounds, seed, drift):
         bandit.update(context, action, reward, prob)
 
         if (x + 1) % 10_000 == 0:
-            print(f"finished round: {x + 1:,} / {rounds:,}", flush=True,)
+            print(
+                f"finished round: {x + 1:,} / {rounds:,}",
+                flush=True,
+            )
 
     return rewards
 
@@ -39,40 +45,67 @@ def main():
     features, labels = load_dataset()
     features = torch.from_numpy(encode_features(features))
 
-    # use same shuffled order as neural experiments
+    # use the same shuffled order as before
     row_order = np.random.default_rng(67).permutation(len(labels))
 
-    experiments = [(Banditron, 1_400_000, 500_000), (Banditron, 6_000_000, 0),]
-    
-    for model, rounds, drift in experiments:
-        for seed in range(67, 77):
-            filename = (
-                f"{model.__name__}_rounds{rounds}"
-                f"_drift{drift}_seed{seed}.npz"
-            )
+    models = [NeuralBandit2, NeuralBandit3, LinUCB, CTS, Banditron]
+    rounds = 2500000
 
-            if os.path.exists(filename):
-                print(f"skipping {filename}", flush=True)
-                continue
+    for drift in [0, 500000]:
+        for model in models:
+            for seed in range(67, 77):
+                filename = (
+                    f"{model.__name__}_rounds{rounds}"
+                    f"_drift{drift}_seed{seed}.npz"
+                )
 
-            print(
-                f"starting {model.__name__}, drift {drift}, seed {seed}",
-                flush=True,
-            )
+                if os.path.exists(filename):
+                    with np.load(filename) as data:
+                        if data["rewards"].shape != (rounds,):
+                            raise ValueError(f"incomplete run in {filename}")
 
-            rewards = run_experiment(
-                features, labels, row_order, model, rounds, seed, drift
-            )
+                    print(f"skipping {filename}", flush=True)
+                    continue
 
-            np.savez_compressed(filename, rewards=rewards)
+                old_filename = (
+                    f"{model.__name__}_rounds6000000"
+                    f"_drift0_seed{seed}.npz"
+                )
 
-            window = min(100_000, len(rewards))
-            print(
-                f"last {window:,} avg reward: "
-                f"{rewards[-window:].mean():.4f}",
-                flush=True,
-            )
-            print(f"saved {filename}", flush=True)
+                # reuse the first 2.5 million stationary rewards
+                if drift == 0 and os.path.exists(old_filename):
+                    with np.load(old_filename) as data:
+                        old_rewards = data["rewards"]
+
+                        if old_rewards.shape != (6_000_000,):
+                            raise ValueError(
+                                f"incomplete run in {old_filename}"
+                            )
+
+                        rewards = old_rewards[:rounds].copy()
+
+                    print(f"reusing {old_filename}", flush=True)
+
+                else:
+                    print(
+                        f"starting {model.__name__}, "
+                        f"drift {drift}, seed {seed}",
+                        flush=True,
+                    )
+
+                    rewards = run_experiment(
+                        features, labels, row_order,
+                        model, rounds, seed, drift,
+                    )
+
+                np.savez_compressed(filename, rewards=rewards)
+
+                print(
+                    f"last 100,000 avg reward: "
+                    f"{rewards[-100_000:].mean():.4f}",
+                    flush=True,
+                )
+                print(f"saved {filename}", flush=True)
 
 
 if __name__ == "__main__":
