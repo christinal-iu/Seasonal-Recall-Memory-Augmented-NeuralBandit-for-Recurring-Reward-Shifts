@@ -82,6 +82,7 @@ def main():
     ) as file:
         writer = csv.DictWriter(
             file,
+            lineterminator="\n",
             fieldnames=[
                 "dataset",
                 "setting",
@@ -207,6 +208,7 @@ def main():
             writer = csv.DictWriter(
                 file,
                 fieldnames=list(values[0]),
+                lineterminator="\n",
             )
             writer.writeheader()
             writer.writerows(values)

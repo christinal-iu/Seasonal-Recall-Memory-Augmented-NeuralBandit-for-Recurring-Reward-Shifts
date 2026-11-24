@@ -1,2 +1,19 @@
-__pycache__/
+# python env and cache
 .venv/
+__pycache__/
+*.pyc
+
+# mac files
+.DS_Store
+
+# experiment logs and raw outputs
+*.log
+*.npz
+*.pt
+
+# short pilot runs
+pilot_results/
+
+result_archives/
+development/
+.vscode/

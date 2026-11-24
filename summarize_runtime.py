@@ -68,6 +68,7 @@ def main():
         writer = csv.DictWriter(
             file,
             fieldnames=list(output[0]),
+            lineterminator="\n",
         )
         writer.writeheader()
         writer.writerows(output)

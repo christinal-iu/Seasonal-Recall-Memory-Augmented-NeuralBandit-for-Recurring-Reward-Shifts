@@ -28,7 +28,28 @@ def run_experiment(
         f"_rounds{rounds}_interval{interval}_seed{seed}.npz",
     )
 
+    # check saved results before reusing them
     if os.path.exists(filename):
+        with np.load(filename) as data:
+            if data["rewards"].shape != (rounds,):
+                raise ValueError(f"incomplete run: {filename}")
+
+            expected = {
+                "dataset": dataset,
+                "method": method,
+                "setting": setting,
+                "seed": seed,
+                "rounds": rounds,
+                "interval": interval,
+                "version": version,
+            }
+
+            for name, value in expected.items():
+                if data[name].item() != value:
+                    raise ValueError(
+                        f"saved {name} does not match: {filename}"
+                    )
+
         print(f"skipping {filename}", flush=True)
         return
 
