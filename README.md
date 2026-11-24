@@ -304,21 +304,9 @@ Earlier development figures are stored in `figures/legacy/`. The figures above s
 
 ## Saved results
 
-Raw experiment files are excluded from Git. They can be regenerated using the experiment runners.
+Raw experiment files are excluded from Git. They can be regenerated using `run_experiment.py` for the reproduction and `run_final.py` for the extension experiments.
 
-If using the prepared result archives, extract them from the project root:
-
-```bash
-unzip final_results_v1.zip
-unzip reproduction_results_v1.zip
-```
-
-The archives contain:
-
-- **`final_results_v1.zip`:** 100 files inside `final_results/`.
-- **`reproduction_results_v1.zip`:** 100 reproduction files, `reference_predictions.npz`, and `reference_model.pt`.
-
-The reproduction archive extracts its files into the project root. After extraction, the summary and plotting scripts can use the saved results directly.
+The repository includes summary CSV files and final figures. After generating the raw results, the summary and plotting scripts can be run using the commands above.
 
 ## Main files
 
