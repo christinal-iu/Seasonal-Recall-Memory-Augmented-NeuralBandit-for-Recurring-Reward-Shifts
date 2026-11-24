@@ -218,18 +218,6 @@ Then run:
 python run_final.py
 ```
 
-On macOS, this command prevents idle sleep and saves progress:
-
-```bash
-caffeinate -i python -u run_final.py > final_experiments.log 2>&1
-```
-
-View progress from another terminal:
-
-```bash
-tail -n +1 -f final_experiments.log
-```
-
 The script checks existing results and skips matching completed files. Update the experiment version when algorithm settings change so that older results are kept separate.
 
 ### Summaries and figures
@@ -284,7 +272,7 @@ The evaluation measures:
 
 Learning-curve shading shows one sample standard deviation across seeds.
 
-Comparison intervals use paired differences across matching seeds and approximate 95% Student t confidence intervals. These intervals are based on five seeds and are unadjusted for multiple comparisons.
+Comparison intervals use paired differences across matching seeds and approximate 95% Student-t confidence intervals. These intervals are based on five seeds and are unadjusted for multiple comparisons.
 
 ### Runtime
 
