@@ -102,7 +102,7 @@ Run the experiments:
 python run_experiment.py
 ```
 
-The script reuses completed result files. It can also reuse the first 2.5 million rewards from earlier six-million-round stationary runs if those files are available locally.
+The script reuses completed result files. Each reproduction experiment is evaluated over 2.5 million rounds.
 
 Generate the reproduction accuracy figures:
 
@@ -142,7 +142,7 @@ The method maintains:
 At each round:
 
 1. The current and saved models produce action probabilities.
-2. The router combines those probabilities.
+2. The policy-selection mechanism combines those probabilities.
 3. An action is sampled and its reward is observed.
 4. The current model's reward networks are trained using the actual probability of the chosen action.
 5. Importance-weighted reward estimates update the model-selection weights.
@@ -161,14 +161,14 @@ The final settings are:
 
 - **Action exploration:** 0.05
 - **Internal model exploration:** 0.1
-- **Router exploration:** 0.1
-- **Router discount:** 0.999
+- **Policy-selection exploration:** 0.1
+- **Policy-selection discount:** 0.999
 - **Maximum saved policies:** 3
 - **Archive interval:** 7,000 rounds
 - **Reference contexts:** 128
 - **Minimum signature disagreement:** 0.1
 
-The router uses a fixed random seed of zero. The main random generator and network initialization use the run seed.
+The policy-selection mechanism uses a fixed random seed of zero. The main random generator and network initialization use the run seed.
 
 ## Extension experiments
 
@@ -348,11 +348,11 @@ The results support the extension on recurring Covertype streams. The evaluation
 - Digits repeatedly presents a small collection of examples.
 - The extension experiments use a shorter horizon than the reproduction.
 - Higher exploration explains a substantial portion of improvement over original NB3.
-- Memory, routing, and feedback change together, so their individual contributions require further ablations.
+- Memory, policy selection, and feedback change together, so their individual contributions require further ablations.
 - LinUCB, CTS, and Banditron were evaluated for reproduction. Evaluating them on the extension benchmark remains future work.
 - Overall improvements on Digits are less conclusive.
 - Saved models require additional computation and storage.
 
 The contribution is an implemented and evaluated extension to NeuralBandit3. The experiments provide empirical evidence for the tested settings. A new regret guarantee and novelty of policy memory itself are outside the claims of this project.
 
-Future work could evaluate naturally recurring reward patterns, longer streams, additional baselines, and separate ablations for routing and shared feedback.
+Future work could evaluate naturally recurring reward patterns, longer streams, additional baselines, and separate ablations for policy selection and shared feedback.
